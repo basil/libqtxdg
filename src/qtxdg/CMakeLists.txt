@@ -15,6 +15,7 @@ set(libqtxdg_PUBLIC_H_FILES
     xdgmimetype.h
     xdgmimeapps.h
     xdgdefaultapps.h
+    xdgprocess.h
 )
 
 set(libqtxdg_PUBLIC_CLASSES
@@ -29,9 +30,11 @@ set(libqtxdg_PUBLIC_CLASSES
     XdgMimeType
     XdgMimeApps
     XdgDefaultApps
+    XdgProcess
 )
 
 set(libqtxdg_PRIVATE_H_FILES
+    meta_types.h
     qtxdglogging.h
     xdgmenuapplinkprocessor.h
     xdgmenulayoutprocessor.h
@@ -43,6 +46,7 @@ set(libqtxdg_PRIVATE_H_FILES
 )
 
 set(libqtxdg_CPP_FILES
+    meta_types.cpp
     qtxdglogging.cpp
     xdgaction.cpp
     xdgdesktopfile.cpp
@@ -61,6 +65,7 @@ set(libqtxdg_CPP_FILES
     xdgmimeappsbackendinterface.cpp
     xdgmimeappsglibbackend.cpp
     xdgdefaultapps.cpp
+    xdgprocess.cpp
 )
 
 QT6_ADD_DBUS_INTERFACE(libqtxdg_DBUS_INTERFACE_SRCS

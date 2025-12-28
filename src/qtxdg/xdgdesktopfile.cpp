@@ -34,6 +34,7 @@
 #include "application_interface.h" // generated interface for DBus org.freedesktop.Application
 #include "xdgmimeapps.h"
 #include "xdgdefaultapps.h"
+#include "xdgprocess.h"
 
 #include <cstdlib>
 #include <unistd.h>
@@ -79,6 +80,7 @@ static constexpr QLatin1StringView mimeTypeKey("MimeType");
 static constexpr QLatin1StringView applicationsStr("applications");
 
 static constexpr QLatin1StringView nameKey("Name");
+static constexpr QLatin1StringView genericNameKey("GenericName");
 static constexpr QLatin1StringView typeKey("Type");
 static constexpr QLatin1StringView ApplicationStr("Application");
 static constexpr QLatin1StringView LinkStr("Link");
@@ -404,7 +406,7 @@ public:
     }
     bool read(const QString &prefix);
     XdgDesktopFile::Type detectType(XdgDesktopFile *q) const;
-    bool startApplicationDetached(const XdgDesktopFile *q, const QString & action, const QStringList& urls) const;
+    bool startApplicationDetached(const XdgDesktopFile *q, const QString & action, const QStringList& urls, const QString &slice = QString()) const;
     bool startLinkDetached(const XdgDesktopFile *q) const;
     bool startByDBus(const QString & action, const QStringList& urls) const;
     QStringList getListValue(const XdgDesktopFile * q, const QString & key, bool tryExtendPrefix) const;
@@ -491,7 +493,7 @@ XdgDesktopFile::Type XdgDesktopFileData::detectType(XdgDesktopFile *q) const
     return XdgDesktopFile::UnknownType;
 }
 
-bool XdgDesktopFileData::startApplicationDetached(const XdgDesktopFile *q, const QString & action, const QStringList& urls) const
+bool XdgDesktopFileData::startApplicationDetached(const XdgDesktopFile *q, const QString & action, const QStringList& urls, const QString &slice) const
 {
     //DBusActivatable handling
     if (q->value("DBusActivatable"_L1, false).toBool()) {
@@ -574,7 +576,20 @@ bool XdgDesktopFileData::startApplicationDetached(const XdgDesktopFile *q, const
 
     if (detach)
     {
-        return QProcess::startDetached(cmd, args, workingDir);
+        const QString appId = QFileInfo(q->fileName()).completeBaseName();
+
+        const QString name = q->localizedValue(nameKey).toString();
+        const QString genericName = q->localizedValue(genericNameKey).toString();
+        QString description;
+        if (name.isEmpty()) {
+            description = genericName;
+        } else if (genericName.isEmpty()) {
+            description = name;
+        } else {
+            description = name + QStringLiteral(" - ") + genericName;
+        }
+
+        return XdgProcess::startDetached(cmd, args, workingDir, slice, appId, description);
     } else
     {
         auto p = std::make_unique<QProcess>();
@@ -1024,12 +1039,12 @@ XdgDesktopFile::Type XdgDesktopFile::type() const
  If the function is successful then *pid is set to the process identifier of the
  started process.
  ************************************************/
-bool XdgDesktopFile::startDetached(const QStringList& urls) const
+bool XdgDesktopFile::startDetached(const QStringList& urls, const QString& slice) const
 {
     switch(d->mType)
     {
     case ApplicationType:
-        return d->startApplicationDetached(this, QString{}, urls);
+        return d->startApplicationDetached(this, QString{}, urls, slice);
         break;
 
     case LinkType:

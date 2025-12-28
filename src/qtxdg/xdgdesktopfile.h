@@ -181,7 +181,7 @@ public:
         For file with Link type. Opens URL in the associated application. Parametr urls is not used.
 
         For file with Directory type, do nothing.  */
-    bool startDetached(const QStringList& urls) const;
+    bool startDetached(const QStringList& urls, const QString &slice = QString()) const;
 
     //! This function is provided for convenience. It's equivalent to calling startDetached(QStringList(url)).
     bool startDetached(const QString& url = QString()) const;
